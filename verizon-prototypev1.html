@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verizon Agent Tool — AI Companion Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+
+  /* ── Screen Nav (prototype only) ── */
+  .screen-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #1a1a1a; color: #fff; display: flex; align-items: center;
+    gap: 4px; padding: 8px 12px; font-size: 13px; overflow-x: auto;
+    flex-wrap: wrap;
+  }
+  .screen-nav .nav-group-label {
+    opacity: .6; white-space: nowrap; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; margin-right: 4px;
+  }
+  .screen-nav .nav-divider {
+    width: 1px; height: 24px; background: #555; margin: 0 8px; flex-shrink: 0;
+  }
+  .screen-nav button {
+    background: #333; color: #fff; border: none; border-radius: 6px;
+    padding: 6px 10px; font-size: 11px; cursor: pointer; white-space: nowrap;
+    transition: background .15s;
+  }
+  .screen-nav button:hover { background: #555; }
+  .screen-nav button.active { background: #ee0000; }
+
+  /* ── Layout Shell ── */
+  .shell { display: none; margin-top: 52px; height: calc(100vh - 52px); }
+  .shell.active { display: flex; flex-direction: column; }
+
+  /* Top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px; background: #fff; border-bottom: 1px solid #e5e5e5;
+    flex-shrink: 0;
+  }
+  .topbar-logo { color: #ee0000; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #666; }
+
+  .main-row { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Left Sidebar ── */
+  .sidebar {
+    width: 64px; background: #fff; border-right: 1px solid #e5e5e5;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 12px; gap: 4px; flex-shrink: 0;
+  }
+  .sidebar-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 56px; height: 56px; border-radius: 12px; font-size: 10px;
+    color: #666; cursor: pointer; transition: background .15s; gap: 4px;
+  }
+  .sidebar-item:hover { background: #f5f5f5; }
+  .sidebar-item.active { background: #f0f0f0; color: #1a1a1a; }
+  .sidebar-item svg { width: 20px; height: 20px; }
+
+  /* ── Content Area ── */
+  .content { flex: 1; overflow-y: auto; padding: 24px; background: #f9f9f9; }
+
+  /* Bill help banner */
+  .bill-help-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff; border-radius: 16px; padding: 20px 28px;
+    border: 1px solid #e5e5e5; margin-bottom: 20px;
+  }
+  .bill-help-banner h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .bill-help-banner p { font-size: 14px; color: #666; }
+  .btn-outline {
+    background: #fff; border: 2px solid #1a1a1a; border-radius: 24px;
+    padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .15s; white-space: nowrap;
+  }
+  .btn-outline:hover { background: #f5f5f5; }
+  .btn-filled {
+    background: #1a1a1a; color: #fff; border: none; border-radius: 24px;
+    padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .15s; white-space: nowrap;
+  }
+  .btn-filled:hover { background: #333; }
+
+  /* Placeholder cards */
+  .placeholder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .placeholder-card { background: #fff; border-radius: 16px; height: 140px; border: 1px solid #eee; }
+
+  /* ── Companion Panel (right side) ── */
+  .companion {
+    width: 380px; background: #fff; border-left: 1px solid #e5e5e5;
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .companion-header {
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 12px 16px; gap: 8px;
+  }
+  .companion-header .dots-btn, .companion-header .close-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e5e5e5;
+    background: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; color: #666;
+  }
+  .companion-header .close-btn:hover { background: #f5f5f5; }
+  .companion-body { flex: 1; overflow-y: auto; padding: 0 20px 20px; }
+  .companion-sparkle { color: #ee0000; font-size: 22px; margin-bottom: 12px; }
+  .companion-body h2 { font-size: 20px; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+  .companion-body p { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 16px; }
+
+  /* Savings option cards */
+  .savings-option {
+    display: flex; align-items: center; padding: 16px;
+    border: 1px solid #e5e5e5; border-radius: 12px; margin-bottom: 12px;
+    cursor: pointer; transition: border-color .15s;
+  }
+  .savings-option:hover { border-color: #ccc; }
+  .savings-option .icon-box {
+    width: 48px; height: 48px; border-radius: 10px; margin-right: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .savings-option .option-text { flex: 1; }
+  .savings-option .option-text strong { font-size: 14px; display: block; }
+  .savings-option .option-text span { font-size: 13px; color: #888; }
+
+  /* Checkbox */
+  .checkbox {
+    width: 22px; height: 22px; border-radius: 4px; border: 2px solid #ccc;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all .15s;
+  }
+  .checkbox.checked { background: #1a1a1a; border-color: #1a1a1a; }
+  .checkbox.checked::after { content: '✓'; color: #fff; font-size: 14px; font-weight: 700; }
+
+  /* Line select items */
+  .line-select { padding: 0 0 0 16px; margin-top: 8px; }
+  .line-select-label { font-size: 13px; color: #888; margin-bottom: 8px; }
+  .line-item {
+    display: flex; align-items: center; padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0; font-size: 14px;
+  }
+  .line-item:last-child { border-bottom: none; }
+  .line-item .line-icon { margin-right: 12px; color: #aaa; }
+  .line-item .line-num { flex: 1; }
+  .savings-note { display: flex; align-items: center; gap: 8px; padding: 16px 0; font-size: 13px; color: #555; }
+
+  /* Bill overview table */
+  .bill-table { width: 100%; border-collapse: collapse; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  .bill-table th { text-align: left; padding: 12px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid #e5e5e5; }
+  .bill-table td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+  .bill-table tr:last-child td { border-bottom: none; }
+
+  /* Ask anything bar */
+  .ask-bar {
+    display: flex; align-items: center; padding: 12px 20px;
+    border-top: 1px solid #e5e5e5; gap: 12px;
+  }
+  .ask-bar .plus-icon { color: #888; font-size: 20px; cursor: pointer; }
+  .ask-bar input { flex: 1; border: none; outline: none; font-size: 14px; color: #888; background: transparent; }
+  .ask-bar .mic-icon { color: #888; font-size: 18px; cursor: pointer; }
+
+  /* ── Jamie's Line layout ── */
+  .topbar-jamie { display: flex; align-items: center; gap: 16px; }
+  .topbar-jamie .back-arrow { font-size: 20px; cursor: pointer; color: #1a1a1a; }
+  .topbar-jamie .line-name h2 { font-size: 18px; font-weight: 700; }
+  .topbar-jamie .line-name p { font-size: 13px; color: #888; }
+  .line-pill {
+    background: #1a1a1a; color: #fff; padding: 8px 20px; border-radius: 24px;
+    font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+  }
+  .plus-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e5e5e5;
+    background: #fff; font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .topbar-actions { display: flex; align-items: center; gap: 16px; }
+  .topbar-actions .icon-btn {
+    width: 36px; height: 36px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; color: #666; cursor: pointer;
+  }
+  .cart-badge { position: relative; }
+  .cart-badge .badge {
+    position: absolute; top: -4px; right: -4px; background: #ee0000;
+    color: #fff; font-size: 10px; font-weight: 700; width: 16px; height: 16px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Line detail cards */
+  .line-card {
+    background: #fff; border-radius: 16px; padding: 20px;
+    border: 1px solid #e5e5e5; margin-bottom: 12px;
+  }
+  .line-card .card-row { display: flex; align-items: center; gap: 14px; }
+  .line-card .card-icon {
+    width: 48px; height: 48px; border-radius: 12px; background: #f5f5f5;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .line-card h4 { font-size: 15px; font-weight: 600; }
+  .line-card .subtitle { font-size: 13px; color: #888; }
+
+  /* Quote panel */
+  .quote-panel .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .quote-panel .detail-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; }
+  .opportunities { margin-top: 16px; }
+  .opportunities h4 { font-size: 13px; color: #888; margin-bottom: 10px; }
+  .opp-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid #e5e5e5; border-radius: 24px; padding: 8px 16px;
+    font-size: 13px; margin-right: 8px; margin-bottom: 8px;
+  }
+  .opp-chip .pre-approved { color: #ee0000; font-weight: 600; }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 16px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Bottom bar */
+  .bottom-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px; background: #fff; border-top: 1px solid #e5e5e5;
+  }
+  .bottom-bar .current-pill {
+    display: flex; align-items: center; gap: 8px; border: 1px solid #e5e5e5;
+    border-radius: 24px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+  }
+  .bottom-bar .monthly { font-size: 13px; color: #888; margin-left: 12px; }
+  .bottom-bar .monthly strong { color: #1a1a1a; font-size: 16px; }
+  .btn-review {
+    background: #ee0000; color: #fff; border: none; border-radius: 24px;
+    padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+
+  /* Ready panel */
+  .ready-panel { padding: 16px 20px; }
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .toggle {
+    width: 44px; height: 24px; border-radius: 12px; background: #e0e0e0;
+    position: relative; cursor: pointer; transition: background .2s;
+  }
+  .toggle .knob {
+    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    position: absolute; top: 2px; left: 2px; transition: left .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle.on { background: #1a8917; }
+  .toggle.on .knob { left: 22px; }
+  .section-label { font-size: 14px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5; margin-bottom: 12px; }
+  .no-sessions { font-size: 13px; color: #aaa; text-align: center; padding: 20px 0; }
+
+  /* ══════════════════════════════════════════════
+     MOBILE PHONE FRAME
+     ══════════════════════════════════════════════ */
+  .mobile-shell {
+    display: none; margin-top: 52px; height: calc(100vh - 52px);
+    justify-content: center; align-items: center; background: #e8e8e8;
+  }
+  .mobile-shell.active { display: flex; }
+
+  .phone-frame {
+    width: 390px; height: 844px; background: #fff; border-radius: 44px;
+    border: 6px solid #1a1a1a; overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px 8px; font-size: 15px; font-weight: 600;
+    flex-shrink: 0; background: #fff;
+  }
+  .status-bar .time { font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 4px; font-size: 13px; }
+
+  /* Mobile nav bar top */
+  .mob-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px 12px; background: #fff; flex-shrink: 0;
+  }
+  .mob-topbar .back { font-size: 22px; cursor: pointer; color: #1a1a1a; width: 32px; }
+  .mob-topbar .title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .mob-topbar .title .sparkle-sm { color: #ee0000; font-size: 14px; }
+  .mob-topbar .actions { display: flex; gap: 12px; font-size: 18px; color: #1a1a1a; width: 64px; justify-content: flex-end; }
+
+  /* Mobile content area */
+  .mob-content { flex: 1; overflow-y: auto; padding: 0 20px; }
+
+  /* Mobile Bill details page */
+  .mob-bill-header { padding: 20px 0 16px; }
+  .mob-bill-header h1 { font-size: 26px; font-weight: 800; line-height: 1.2; }
+  .mob-bill-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .mob-btn-outline {
+    background: #fff; border: 1.5px solid #1a1a1a; border-radius: 24px;
+    padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  /* Mobile bottom tab bar */
+  .mob-tab-bar {
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 8px 0 28px; border-top: 1px solid #e5e5e5; background: #fff;
+    flex-shrink: 0;
+  }
+  .mob-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: #888; cursor: pointer;
+  }
+  .mob-tab.active { color: #ee0000; }
+  .mob-tab svg { width: 22px; height: 22px; }
+
+  /* ── Bill Insights Modal (mobile) ── */
+  .mob-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 8px; flex-shrink: 0; background: #fff;
+  }
+  .mob-modal-header .dots { font-size: 20px; color: #1a1a1a; cursor: pointer; width: 32px; }
+  .mob-modal-header .modal-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .mob-modal-header .modal-title .sparkle-sm { color: #ee0000; font-size: 14px; }
+  .mob-modal-header .close-x { font-size: 20px; color: #1a1a1a; cursor: pointer; width: 32px; text-align: right; }
+
+  .mob-section-title {
+    font-size: 20px; font-weight: 800; text-align: center;
+    padding: 16px 20px 8px;
+  }
+  .mob-section-subtitle {
+    font-size: 15px; font-weight: 600; text-align: center;
+    padding: 4px 20px 16px; color: #888;
+  }
+
+  /* Mobile AI message bubble */
+  .mob-ai-bubble {
+    background: #f5f5f5; border-radius: 16px; padding: 16px 18px;
+    margin: 0 0 16px; font-size: 15px; line-height: 1.5; color: #333;
+  }
+  .mob-ai-bubble strong { color: #1a1a1a; }
+
+  /* Mobile table */
+  .mob-table {
+    width: 100%; border: 1px solid #e5e5e5; border-radius: 12px;
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .mob-table-row {
+    display: flex; padding: 14px 16px; border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+  .mob-table-row:last-child { border-bottom: none; }
+  .mob-table-row .line-label { width: 80px; color: #555; font-weight: 500; flex-shrink: 0; }
+  .mob-table-row .line-detail { flex: 1; color: #1a1a1a; }
+
+  /* Thumbs feedback */
+  .mob-feedback { display: flex; gap: 16px; padding: 8px 0 16px; }
+  .mob-feedback .thumb {
+    width: 36px; height: 36px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 18px; color: #888;
+  }
+  .mob-feedback .thumb:hover { color: #1a1a1a; }
+
+  /* Mobile action buttons (bottom of modal) */
+  .mob-action-bar {
+    display: flex; gap: 10px; padding: 12px 20px 28px;
+    border-top: 1px solid #e5e5e5; background: #fff; flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .mob-action-btn {
+    border: 1.5px solid #1a1a1a; border-radius: 24px; padding: 10px 18px;
+    font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    background: #fff; color: #1a1a1a; transition: background .15s;
+  }
+  .mob-action-btn:hover { background: #f5f5f5; }
+  .mob-action-btn.filled { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .mob-action-btn.filled:hover { background: #333; }
+
+  /* Mobile savings options */
+  .mob-savings-item {
+    display: flex; align-items: center; padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0; gap: 14px;
+  }
+  .mob-savings-item:last-child { border-bottom: none; }
+  .mob-savings-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .mob-savings-text { flex: 1; }
+  .mob-savings-text strong { font-size: 15px; font-weight: 600; display: block; margin-bottom: 2px; }
+  .mob-savings-text span { font-size: 13px; color: #888; }
+
+  .mob-checkbox {
+    width: 22px; height: 22px; border-radius: 4px; border: 2px solid #ccc;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all .15s;
+  }
+  .mob-checkbox.checked { background: #1a1a1a; border-color: #1a1a1a; }
+  .mob-checkbox.checked::after { content: '✓'; color: #fff; font-size: 14px; font-weight: 700; }
+
+  /* Mobile search bar */
+  .mob-search-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: #f5f5f5; border-radius: 12px; padding: 10px 14px;
+    margin: 0 0 16px;
+  }
+  .mob-search-bar svg { flex-shrink: 0; color: #999; }
+  .mob-search-bar input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 14px; color: #1a1a1a;
+  }
+  .mob-search-bar input::placeholder { color: #aaa; }
+  .mob-search-bar .search-clear {
+    width: 20px; height: 20px; border-radius: 50%; background: #ccc;
+    display: none; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff; cursor: pointer; flex-shrink: 0;
+  }
+  .mob-search-bar input:not(:placeholder-shown) ~ .search-clear { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ Screen Navigation ═══════ -->
+<div class="screen-nav">
+  <span class="nav-group-label">Desktop:</span>
+  <button class="active" onclick="showScreen('screen6')">Initial</button>
+  <button onclick="showScreen('screen3')">Bill Overview</button>
+  <button onclick="showScreen('screen2')">Savings List</button>
+  <button onclick="showScreen('screen1')">Line Select</button>
+  <button onclick="showScreen('screen5')">Loading</button>
+  <button onclick="showScreen('screen4')">Quote</button>
+  <div class="nav-divider"></div>
+  <span class="nav-group-label">Mobile:</span>
+  <button onclick="showScreen('mob-bill')">Bill Details</button>
+  <button onclick="showScreen('mob-insights')">Bill Insights</button>
+  <button onclick="showScreen('mob-savings')">Explore Savings</button>
+  <button onclick="showScreen('mob-quote')">Quote Created</button>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     DESKTOP SCREENS (same as before)
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- SCREEN 6: Initial State -->
+<div class="shell active" id="screen6">
+  <div class="topbar">
+    <div class="topbar-logo">verizon</div>
+    <div class="topbar-right">
+      <span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span>
+    </div>
+  </div>
+  <div class="main-row">
+    <div class="sidebar">
+      <div class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>Customer</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Mobile</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>Home</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Shop</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg>Case</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Offers</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Insights</div>
+    </div>
+    <div class="content">
+      <div class="bill-help-banner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="color:#ee0000;font-size:18px">✦✦</span><h3>Bill help</h3>
+          </div>
+          <p>Ben recently searched for ways to lower their bill, and is looking for support.</p>
+        </div>
+        <button class="btn-filled" onclick="showScreen('screen3')">Show bill overview</button>
+      </div>
+      <div class="placeholder-grid">
+        <div class="placeholder-card"></div><div class="placeholder-card"></div>
+        <div class="placeholder-card"></div><div class="placeholder-card"></div>
+        <div class="placeholder-card"></div><div class="placeholder-card"></div>
+        <div class="placeholder-card"></div><div class="placeholder-card"></div>
+      </div>
+    </div>
+    <!-- Right side: Customer List + Sidebar -->
+    <div style="display:flex;border-left:1px solid #e5e5e5;flex-shrink:0;">
+      <!-- Customer List Panel -->
+      <div style="width:340px;background:#fff;padding:24px;overflow-y:auto;">
+        <div style="border:1px solid #e5e5e5;border-radius:20px;padding:24px;">
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;">Customer List</h3>
+          <!-- Customer card: Ben Jones -->
+          <div onclick="showScreen('screen3')" style="background:#f5f7fa;border:1px solid #e8ecf0;border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:background .15s;">
+            <div style="font-size:17px;font-weight:600;letter-spacing:0.5px;color:#1a1a1a;">(347) 909-1894</div>
+            <div style="font-size:13px;font-weight:600;color:#888;letter-spacing:1px;margin-top:4px;">BEN JONES</div>
+          </div>
+          <!-- Customer card: Jamie Smith -->
+          <div onclick="showScreen('screen5')" style="background:#f5f7fa;border:1px solid #e8ecf0;border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:background .15s;">
+            <div style="font-size:17px;font-weight:600;letter-spacing:0.5px;color:#1a1a1a;">(480) 299-4938</div>
+            <div style="font-size:13px;font-weight:600;color:#888;letter-spacing:1px;margin-top:4px;">JAMIE SMITH</div>
+          </div>
+          <!-- Customer card: Sarah Connor -->
+          <div style="background:#f5f7fa;border:1px solid #e8ecf0;border-radius:14px;padding:16px 18px;cursor:pointer;transition:background .15s;">
+            <div style="font-size:17px;font-weight:600;letter-spacing:0.5px;color:#1a1a1a;">(212) 555-8273</div>
+            <div style="font-size:13px;font-weight:600;color:#888;letter-spacing:1px;margin-top:4px;">SARAH CONNOR</div>
+          </div>
+        </div>
+      </div>
+      <!-- Right icon sidebar -->
+      <div style="width:72px;background:#fff;border-left:1px solid #e5e5e5;display:flex;flex-direction:column;align-items:center;padding-top:28px;gap:28px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#666;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.85"/></svg>
+          <span style="font-size:10px">Queue</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#666;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span style="font-size:10px">Pickups</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#666;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <span style="font-size:10px">Deals</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#666;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/><circle cx="12" cy="14" r="2"/></svg>
+          <span style="font-size:10px">Leads</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#666;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="21" x2="8" y2="11"/><line x1="12" y1="21" x2="12" y2="7"/><line x1="16" y1="21" x2="16" y2="13"/></svg>
+          <span style="font-size:10px">Insights</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: Bill Overview -->
+<div class="shell" id="screen3">
+  <div class="topbar"><div class="topbar-logo">verizon</div><div class="topbar-right"><span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span></div></div>
+  <div class="main-row">
+    <div class="sidebar">
+      <div class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>Customer</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Mobile</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>Home</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Shop</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg>Case</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Offers</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Insights</div>
+    </div>
+    <div class="content">
+      <div class="bill-help-banner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="color:#ee0000;font-size:18px">✦✦</span><h3>Bill help</h3></div>
+          <p>Ben recently searched for ways to lower their bill, and is looking for support.</p>
+        </div>
+        <button class="btn-outline" onclick="showScreen('screen6')">Go back</button>
+      </div>
+      <div class="placeholder-grid"><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div></div>
+    </div>
+    <div class="companion">
+      <div class="companion-header"><div class="dots-btn">⋯</div><div class="close-btn" onclick="showScreen('screen6')">✕</div></div>
+      <div class="companion-body">
+        <div class="companion-sparkle">✦✦</div>
+        <h2>Bill overview</h2>
+        <p>Ben's bill increased to <strong>$235.22</strong> due to several changes, including a new device payment, Auto Pay change, and an additional service.</p>
+
+        <!-- Bill Trend Chart -->
+        <div style="border:1px solid #e5e5e5;border-radius:12px;padding:14px;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:13px;font-weight:600;">Monthly bill trend</span>
+            <span style="font-size:11px;color:#888;">Last 6 months</span>
+          </div>
+          <svg viewBox="0 0 320 130" style="width:100%;height:auto;overflow:visible;">
+            <line x1="40" y1="10" x2="300" y2="10" stroke="#f0f0f0" stroke-width="1"/>
+            <line x1="40" y1="37" x2="300" y2="37" stroke="#f0f0f0" stroke-width="1"/>
+            <line x1="40" y1="64" x2="300" y2="64" stroke="#f0f0f0" stroke-width="1"/>
+            <line x1="40" y1="91" x2="300" y2="91" stroke="#f0f0f0" stroke-width="1"/>
+            <text x="36" y="14" text-anchor="end" font-size="8" fill="#aaa">$250</text>
+            <text x="36" y="41" text-anchor="end" font-size="8" fill="#aaa">$220</text>
+            <text x="36" y="68" text-anchor="end" font-size="8" fill="#aaa">$190</text>
+            <text x="36" y="95" text-anchor="end" font-size="8" fill="#aaa">$160</text>
+            <defs><linearGradient id="billGradDesktop" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ee0000"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs>
+            <path d="M58 78 L106 74 L154 72 L202 65 L250 52 L298 16 L298 91 L58 91 Z" fill="url(#billGradDesktop)" opacity="0.12"/>
+            <polyline points="58,78 106,74 154,72 202,65 250,52 298,16" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle cx="58" cy="78" r="3.5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+            <circle cx="106" cy="74" r="3.5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+            <circle cx="154" cy="72" r="3.5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+            <circle cx="202" cy="65" r="3.5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+            <circle cx="250" cy="52" r="3.5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+            <circle cx="298" cy="16" r="5" fill="#ee0000"/>
+            <text x="298" y="8" text-anchor="middle" font-size="9" font-weight="700" fill="#ee0000">$235</text>
+            <text x="58" y="71" text-anchor="middle" font-size="7" fill="#888">$185</text>
+            <text x="106" y="67" text-anchor="middle" font-size="7" fill="#888">$190</text>
+            <text x="154" y="65" text-anchor="middle" font-size="7" fill="#888">$192</text>
+            <text x="202" y="58" text-anchor="middle" font-size="7" fill="#888">$200</text>
+            <text x="250" y="45" text-anchor="middle" font-size="7" fill="#888">$210</text>
+            <text x="58" y="106" text-anchor="middle" font-size="8" fill="#aaa">Oct</text>
+            <text x="106" y="106" text-anchor="middle" font-size="8" fill="#aaa">Nov</text>
+            <text x="154" y="106" text-anchor="middle" font-size="8" fill="#aaa">Dec</text>
+            <text x="202" y="106" text-anchor="middle" font-size="8" fill="#aaa">Jan</text>
+            <text x="250" y="106" text-anchor="middle" font-size="8" fill="#aaa">Feb</text>
+            <text x="298" y="106" text-anchor="middle" font-size="9" font-weight="600" fill="#ee0000">Mar</text>
+          </svg>
+          <div style="display:flex;justify-content:center;gap:14px;margin-top:6px;font-size:10px;color:#888;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;"></span> Previous</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:#ee0000;display:inline-block;"></span> Current</span>
+          </div>
+        </div>
+
+        <table class="bill-table">
+          <tr><th>Line</th><th>Recent changes</th></tr>
+          <tr><td>Account</td><td>+$15.00 — Auto Pay set to off</td></tr>
+          <tr><td>••• 0234</td><td>+$25.00 — monthly device payment</td></tr>
+          <tr><td>••• 0488</td><td>+$15.00 — Mobile Protect added</td></tr>
+        </table>
+        <p>Would you like to explore ways to reduce the monthly cost?</p>
+        <button class="btn-outline" onclick="showScreen('screen2')">Explore savings</button>
+      </div>
+      <div class="ask-bar"><span class="plus-icon">＋</span><input type="text" placeholder="Ask anything"><span class="mic-icon">🎤</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: Savings List -->
+<div class="shell" id="screen2">
+  <div class="topbar"><div class="topbar-logo">verizon</div><div class="topbar-right"><span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span></div></div>
+  <div class="main-row">
+    <div class="sidebar">
+      <div class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>Customer</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Mobile</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>Home</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Shop</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg>Case</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Offers</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Insights</div>
+    </div>
+    <div class="content">
+      <div class="bill-help-banner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="color:#ee0000;font-size:18px">✦✦</span><h3>Bill help</h3></div>
+          <p>Ben recently searched for ways to lower their bill, and is looking for support.</p>
+        </div>
+        <button class="btn-outline" onclick="showScreen('screen3')">Go back</button>
+      </div>
+      <div class="placeholder-grid"><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div></div>
+    </div>
+    <div class="companion">
+      <div class="companion-header"><div class="dots-btn">⋯</div><div class="close-btn" onclick="showScreen('screen6')">✕</div></div>
+      <div style="padding:0 20px 4px"><span style="font-size:13px;color:#888">Explore savings</span></div>
+      <div class="companion-body">
+        <div class="companion-sparkle">✦✦</div>
+        <h2>Here are the available ways to lower the monthly total</h2>
+        <p>Recommended based on Ben's current plan and service usage. Select the options you would like to apply.</p>
+        <div class="savings-option" onclick="showScreen('screen1')">
+          <div class="icon-box" style="background:linear-gradient(135deg,#0d2137,#1a4a6e)"><span style="font-size:9px;line-height:1.1;text-align:center">Disney+<br>ESPN<br>Hulu</span></div>
+          <div class="option-text"><strong>Add Disney+, ESPN, Hulu (With Ads)</strong><span>Save $9.99/mo</span></div>
+          <div class="checkbox" onclick="event.stopPropagation();this.classList.toggle('checked')"></div>
+        </div>
+        <div class="savings-option">
+          <div class="icon-box" style="background:#f0f0f0"><span style="font-size:18px;color:#1a8917">$</span></div>
+          <div class="option-text"><strong>Enroll in Autopay & Paperless Billing</strong><span>Save $10.00/mo</span></div>
+          <div class="checkbox" onclick="event.stopPropagation();this.classList.toggle('checked')"></div>
+        </div>
+        <div class="savings-option">
+          <div class="icon-box" style="background:#ee0000"><span style="font-size:10px;font-weight:800">5G</span></div>
+          <div class="option-text"><strong>Switch to Unlimited Welcome</strong><span>Save $15.00/mo</span></div>
+          <div class="checkbox" onclick="event.stopPropagation();this.classList.toggle('checked')"></div>
+        </div>
+      </div>
+      <div class="ask-bar"><span class="plus-icon">＋</span><input type="text" placeholder="Ask anything"><span class="mic-icon">🎤</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 1: Line Selection -->
+<div class="shell" id="screen1">
+  <div class="topbar"><div class="topbar-logo">verizon</div><div class="topbar-right"><span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span></div></div>
+  <div class="main-row">
+    <div class="sidebar">
+      <div class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>Customer</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Mobile</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>Home</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Shop</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg>Case</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Offers</div>
+      <div class="sidebar-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Insights</div>
+    </div>
+    <div class="content">
+      <div class="bill-help-banner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="color:#ee0000;font-size:18px">✦✦</span><h3>Bill help</h3></div>
+          <p>Ben recently searched for ways to lower their bill, and is looking for support.</p>
+        </div>
+        <button class="btn-outline" onclick="showScreen('screen2')">Go back</button>
+      </div>
+      <div class="placeholder-grid"><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div><div class="placeholder-card"></div></div>
+    </div>
+    <div class="companion">
+      <div class="companion-header"><div class="dots-btn">⋯</div><div class="close-btn" onclick="showScreen('screen6')">✕</div></div>
+      <div style="padding:0 20px 4px"><span style="font-size:13px;color:#888">Explore savings</span></div>
+      <div class="companion-body">
+        <div class="companion-sparkle">✦✦</div>
+        <h2>Here are the available ways to lower the monthly total</h2>
+        <p>Recommended based on Ben's current plan and service usage. Select the options you would like to apply.</p>
+        <div style="border:1px solid #e5e5e5;border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="display:flex;align-items:center">
+            <div style="background:linear-gradient(135deg,#0d2137,#1a4a6e);width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:14px;flex-shrink:0">
+              <span style="font-size:9px;line-height:1.1;text-align:center;color:#fff;font-weight:700">Disney+<br>ESPN<br>Hulu</span>
+            </div>
+            <div style="flex:1"><strong style="font-size:14px">Add Disney+, ESPN, Hulu (With Ads)</strong><br><span style="font-size:13px;color:#888">Save $9.99/mo</span></div>
+            <div class="checkbox checked"></div>
+          </div>
+          <div class="line-select">
+            <div class="line-select-label">Select lines to apply</div>
+            <div class="line-item"><span class="line-icon">📱</span><span class="line-num">••• 0234</span><div class="checkbox checked"></div></div>
+            <div class="line-item"><span class="line-icon">📱</span><span class="line-num">••• 0488</span><div class="checkbox"></div></div>
+            <div class="line-item"><span class="line-icon">📱</span><span class="line-num">••• 0655</span><div class="checkbox"></div></div>
+          </div>
+        </div>
+        <div class="savings-note"><span>✓</span> Significant base rate savings immediately</div>
+      </div>
+      <div class="ask-bar"><span class="plus-icon">＋</span><input type="text" placeholder="Ask anything"><span class="mic-icon">🎤</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: Loading -->
+<div class="shell" id="screen5">
+  <div class="topbar"><div class="topbar-logo">verizon</div><div class="topbar-right"><span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span></div></div>
+  <div class="main-row">
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #e5e5e5;background:#fff">
+        <div class="topbar-jamie"><span class="back-arrow" onclick="showScreen('screen6')">←</span><div class="line-name"><h2>Jamie's Line</h2><p>480-299-4938</p></div></div>
+        <div style="display:flex;align-items:center;gap:8px"><div class="line-pill"><span class="dots">•••</span> 4938</div><div class="plus-btn">+</div></div>
+        <div class="topbar-actions"><div class="icon-btn">📞</div><div class="icon-btn">🔗</div><div class="icon-btn cart-badge">🛒<span class="badge">4</span></div><div class="icon-btn">⋮</div></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px;display:flex;gap:16px">
+        <div style="flex:2;display:flex;flex-direction:column;gap:12px"><div class="skeleton" style="height:80px"></div><div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:12px"><div class="skeleton" style="height:60px;width:70%"></div><div class="skeleton" style="height:90px"></div><div class="skeleton" style="height:90px"></div><div class="skeleton" style="height:70px"></div><div class="skeleton" style="height:70px"></div></div>
+      </div>
+      <div class="bottom-bar">
+        <div style="display:flex;align-items:center;gap:16px"><div class="current-pill">Current ▲</div><div class="monthly">Current monthly<br><strong>$XX.XX</strong></div></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border:1px solid #e5e5e5;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer">💬</div><button class="btn-review" onclick="showScreen('screen4')">Review quote</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: Quote Created -->
+<div class="shell" id="screen4">
+  <div class="topbar"><div class="topbar-logo">verizon</div><div class="topbar-right"><span>🔔</span> <span style="color:#ee0000">👤</span> Kella, Srinivasa rao <span>Sync ▾</span> <span>⚙</span></div></div>
+  <div class="main-row">
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #e5e5e5;background:#fff">
+        <div class="topbar-jamie"><span class="back-arrow" onclick="showScreen('screen6')">←</span><div class="line-name"><h2>Jamie's Line</h2><p>480-299-4938</p></div></div>
+        <div style="display:flex;align-items:center;gap:8px"><div class="line-pill"><span class="dots">•••</span> 4938</div><div class="plus-btn">+</div></div>
+        <div class="topbar-actions"><div class="icon-btn">📞</div><div class="icon-btn">🔗</div><div class="icon-btn cart-badge">🛒<span class="badge">4</span></div><div class="icon-btn">⋮</div></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px;display:flex;gap:16px">
+        <div style="flex:2;display:flex;flex-direction:column;gap:12px">
+          <div class="line-card"><div class="card-row"><div class="card-icon">🏷️</div><div><h4>Offers</h4><span class="subtitle">10+ eligible offers</span></div></div></div>
+          <div class="line-card"><div class="card-row"><div class="card-icon" style="background:#f0f0f0"><span style="font-size:28px">📱</span></div><div><h4>Jamie's Apple iPhone 14</h4><span class="subtitle">Silver, 128gb • $XX/mo</span></div></div></div>
+          <div class="line-card"><div class="card-row"><div class="card-icon"><span style="font-size:20px;font-weight:700;color:#888">V</span></div><div><h4>Mobile Protect</h4><span class="subtitle">Not enrolled • $XX/mo</span></div></div></div>
+          <div class="line-card" style="border-left:3px solid #ee0000"><div class="card-row"><div class="card-icon" style="background:#ee0000;color:#fff"><span style="font-size:11px;font-weight:800">5G</span></div><div><h4>Unlimited Plus</h4><span class="subtitle">$XX/mo with Auto Pay</span></div></div></div>
+        </div>
+        <div style="flex:1">
+          <div style="background:#fff;border-radius:16px;padding:20px;border:1px solid #e5e5e5" class="quote-panel">
+            <div class="companion-sparkle">✦✦</div>
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Quote created</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:16px">New quote generated based on the savings applied in the companion.</p>
+            <div class="detail-grid">
+              <div class="detail-item"><span>⏰</span> 8 years, 2 months</div>
+              <div class="detail-item"><span>💰</span> Finance limit: $6595</div>
+              <div class="detail-item"><span>📱</span> Device limit: $750</div>
+              <div class="detail-item"><span>💳</span> Bill-to-account: $200</div>
+            </div>
+            <div class="opportunities">
+              <h4>Opportunities</h4>
+              <div class="opp-chip"><span style="margin-right:4px">🏠</span> Qualifies for 5G Home</div>
+              <div class="opp-chip"><span style="margin-right:4px">💲</span> Discounts Available</div>
+              <div class="opp-chip"><span style="margin-right:4px">💳</span> Verizon Credit Card • <span class="pre-approved">Pre-approved</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <div style="display:flex;align-items:center;gap:16px"><div class="current-pill">Current ▲</div><div class="monthly">Current monthly<br><strong>$XX.XX</strong></div></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border:1px solid #e5e5e5;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer">💬</div><button class="btn-review">Review quote</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MOBILE SCREENS
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- MOBILE: Bill Details Page -->
+<div class="mobile-shell" id="mob-bill">
+  <div class="phone-frame">
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="1" width="3" height="11" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2l-1.5 1.5C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.7 0-3.2.7-4.3 1.8L2.2 7.3C3.7 5.9 5.8 5 8 5s4.3.9 5.8 2.3l-1.5 1.5C11.2 7.7 9.7 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="22.5" y="4" width="2" height="4" rx="1"/><rect x="1.5" y="2.5" width="19" height="7" rx="1"/></svg>
+      </div>
+    </div>
+    <!-- Top bar -->
+    <div class="mob-topbar">
+      <span class="back" onclick="showScreen('screen6')">←</span>
+      <span class="title">Bill details</span>
+      <div class="actions">
+        <span style="cursor:pointer">🔍</span>
+        <span style="cursor:pointer" onclick="showScreen('mob-insights')">💬</span>
+      </div>
+    </div>
+    <!-- Content -->
+    <div class="mob-content">
+      <div class="mob-search-bar" style="margin-top: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search bill charges, lines...">
+        <span class="search-clear">✕</span>
+      </div>
+      <div class="mob-bill-header">
+        <h1>Your bill has increased $42 this month</h1>
+        <div class="mob-bill-actions">
+          <button class="mob-btn-outline">Review bill PDF</button>
+          <button class="mob-btn-outline">Usage details</button>
+        </div>
+      </div>
+    </div>
+    <!-- Bottom Tab Bar -->
+    <div class="mob-tab-bar">
+      <div class="mob-tab active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+        Me
+      </div>
+      <div class="mob-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        Mobile
+      </div>
+      <div class="mob-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/></svg>
+        Home
+      </div>
+      <div class="mob-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Shop
+      </div>
+      <div class="mob-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+        Support
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE: Bill Insights Modal -->
+<div class="mobile-shell" id="mob-insights">
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="1" width="3" height="11" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2l-1.5 1.5C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.7 0-3.2.7-4.3 1.8L2.2 7.3C3.7 5.9 5.8 5 8 5s4.3.9 5.8 2.3l-1.5 1.5C11.2 7.7 9.7 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="22.5" y="4" width="2" height="4" rx="1"/><rect x="1.5" y="2.5" width="19" height="7" rx="1"/></svg>
+      </div>
+    </div>
+    <!-- Modal header -->
+    <div class="mob-modal-header">
+      <span class="dots">⋯</span>
+      <div class="modal-title"><span class="sparkle-sm">✦</span> Bill insights</div>
+      <span class="close-x" onclick="showScreen('mob-bill')">✕</span>
+    </div>
+    <!-- Content -->
+    <div class="mob-content" style="padding-top: 8px;">
+      <div class="mob-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search bill charges, lines...">
+        <span class="search-clear">✕</span>
+      </div>
+      <div class="mob-section-title">Why my bill increased?</div>
+
+      <div class="mob-ai-bubble">
+        Your bill has increased by <strong>$35.22</strong> with several changes, including a new device payment, Auto Pay change, and an additional service.
+      </div>
+
+      <!-- Bill Trend Chart -->
+      <div style="background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:14px;font-weight:600;">Monthly bill trend</span>
+          <span style="font-size:12px;color:#888;">Last 6 months</span>
+        </div>
+        <svg viewBox="0 0 320 140" style="width:100%;height:auto;overflow:visible;">
+          <!-- Grid lines -->
+          <line x1="40" y1="10" x2="310" y2="10" stroke="#f0f0f0" stroke-width="1"/>
+          <line x1="40" y1="40" x2="310" y2="40" stroke="#f0f0f0" stroke-width="1"/>
+          <line x1="40" y1="70" x2="310" y2="70" stroke="#f0f0f0" stroke-width="1"/>
+          <line x1="40" y1="100" x2="310" y2="100" stroke="#f0f0f0" stroke-width="1"/>
+          <!-- Y-axis labels -->
+          <text x="36" y="14" text-anchor="end" font-size="9" fill="#aaa">$250</text>
+          <text x="36" y="44" text-anchor="end" font-size="9" fill="#aaa">$220</text>
+          <text x="36" y="74" text-anchor="end" font-size="9" fill="#aaa">$190</text>
+          <text x="36" y="104" text-anchor="end" font-size="9" fill="#aaa">$160</text>
+          <!-- Area fill -->
+          <path d="M58 85 L112 80 L166 78 L220 70 L274 55 L310 18 L310 100 L58 100 Z" fill="url(#billGradient)" opacity="0.15"/>
+          <defs>
+            <linearGradient id="billGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ee0000"/>
+              <stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+          </defs>
+          <!-- Line -->
+          <polyline points="58,85 112,80 166,78 220,70 274,55 310,18" fill="none" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- Dots -->
+          <circle cx="58" cy="85" r="4" fill="#fff" stroke="#333" stroke-width="2"/>
+          <circle cx="112" cy="80" r="4" fill="#fff" stroke="#333" stroke-width="2"/>
+          <circle cx="166" cy="78" r="4" fill="#fff" stroke="#333" stroke-width="2"/>
+          <circle cx="220" cy="70" r="4" fill="#fff" stroke="#333" stroke-width="2"/>
+          <circle cx="274" cy="55" r="4" fill="#fff" stroke="#333" stroke-width="2"/>
+          <!-- Current month — red highlight -->
+          <circle cx="310" cy="18" r="6" fill="#ee0000"/>
+          <text x="310" y="8" text-anchor="middle" font-size="10" font-weight="700" fill="#ee0000">$235</text>
+          <!-- Month labels -->
+          <text x="58" y="118" text-anchor="middle" font-size="9" fill="#aaa">Oct</text>
+          <text x="112" y="118" text-anchor="middle" font-size="9" fill="#aaa">Nov</text>
+          <text x="166" y="118" text-anchor="middle" font-size="9" fill="#aaa">Dec</text>
+          <text x="220" y="118" text-anchor="middle" font-size="9" fill="#aaa">Jan</text>
+          <text x="274" y="118" text-anchor="middle" font-size="9" fill="#aaa">Feb</text>
+          <text x="310" y="118" text-anchor="middle" font-size="10" font-weight="600" fill="#ee0000">Mar</text>
+          <!-- Dollar labels on dots -->
+          <text x="58" y="78" text-anchor="middle" font-size="8" fill="#888">$185</text>
+          <text x="112" y="73" text-anchor="middle" font-size="8" fill="#888">$190</text>
+          <text x="166" y="71" text-anchor="middle" font-size="8" fill="#888">$192</text>
+          <text x="220" y="63" text-anchor="middle" font-size="8" fill="#888">$200</text>
+          <text x="274" y="48" text-anchor="middle" font-size="8" fill="#888">$210</text>
+        </svg>
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:8px;font-size:11px;color:#888;">
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#333;display:inline-block;"></span> Previous</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#ee0000;display:inline-block;"></span> Current</span>
+        </div>
+      </div>
+
+      <div class="mob-table">
+        <div class="mob-table-row">
+          <span class="line-label">Account</span>
+          <span class="line-detail">+$15.00 — Auto Pay set to off</span>
+        </div>
+        <div class="mob-table-row">
+          <span class="line-label">••• 0234</span>
+          <span class="line-detail">+$25.00 — monthly device payment</span>
+        </div>
+        <div class="mob-table-row">
+          <span class="line-label">••• 0488</span>
+          <span class="line-detail">+$15.00 — Mobile Protect added</span>
+        </div>
+      </div>
+
+      <div class="mob-feedback">
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+        </div>
+      </div>
+    </div>
+    <!-- Action buttons -->
+    <div class="mob-action-bar">
+      <button class="mob-action-btn" onclick="showScreen('mob-savings')">Explore Savings</button>
+      <button class="mob-action-btn">Show Line Breakdown</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE: Explore Savings -->
+<div class="mobile-shell" id="mob-savings">
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="1" width="3" height="11" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2l-1.5 1.5C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.7 0-3.2.7-4.3 1.8L2.2 7.3C3.7 5.9 5.8 5 8 5s4.3.9 5.8 2.3l-1.5 1.5C11.2 7.7 9.7 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="22.5" y="4" width="2" height="4" rx="1"/><rect x="1.5" y="2.5" width="19" height="7" rx="1"/></svg>
+      </div>
+    </div>
+    <!-- Modal header -->
+    <div class="mob-modal-header">
+      <span class="dots">⋯</span>
+      <div class="modal-title"><span class="sparkle-sm">✦</span> Bill insights</div>
+      <span class="close-x" onclick="showScreen('mob-bill')">✕</span>
+    </div>
+    <!-- Content -->
+    <div class="mob-content" style="padding-top: 8px;">
+      <div class="mob-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search bill charges, lines...">
+        <span class="search-clear">✕</span>
+      </div>
+      <div class="mob-section-title" style="font-size: 18px;">Explore savings</div>
+
+      <div class="mob-ai-bubble" style="font-size:14px; color: #888;">
+        Here are recommendations based on your current plan usage. Select the options you would like to apply.
+      </div>
+
+      <!-- Savings options -->
+      <div style="padding: 0 4px;">
+        <div class="mob-savings-item">
+          <div class="mob-savings-icon" style="background:linear-gradient(135deg,#0d2137,#1a4a6e)">
+            <span style="font-size:7px;line-height:1;text-align:center">Disney+<br>ESPN<br>Hulu</span>
+          </div>
+          <div class="mob-savings-text">
+            <strong>Add Disney+, ESPN, Hulu (With Ads)</strong>
+            <span>Save $9.99/mo</span>
+          </div>
+          <div class="mob-checkbox" onclick="this.classList.toggle('checked')"></div>
+        </div>
+
+        <div class="mob-savings-item">
+          <div class="mob-savings-icon" style="background:#f0f0f0">
+            <span style="font-size:16px;color:#1a8917;font-weight:700">$</span>
+          </div>
+          <div class="mob-savings-text">
+            <strong>Enroll in Autopay & Paperless Billing</strong>
+            <span>Save $10.00/mo</span>
+          </div>
+          <div class="mob-checkbox" onclick="this.classList.toggle('checked')"></div>
+        </div>
+
+        <div class="mob-savings-item">
+          <div class="mob-savings-icon" style="background:#ee0000">
+            <span style="font-size:9px;font-weight:800">5G</span>
+          </div>
+          <div class="mob-savings-text">
+            <strong>Switch to Unlimited Welcome</strong>
+            <span>Save $15.00/mo</span>
+          </div>
+          <div class="mob-checkbox" onclick="this.classList.toggle('checked')"></div>
+        </div>
+      </div>
+
+      <div class="mob-feedback" style="margin-top: 8px;">
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+        </div>
+      </div>
+    </div>
+    <!-- Action buttons -->
+    <div class="mob-action-bar">
+      <button class="mob-action-btn">Additional savings</button>
+      <button class="mob-action-btn filled" onclick="showScreen('mob-quote')">Get support</button>
+      <button class="mob-action-btn" style="border-color:#ee0000;color:#ee0000">Suggest...</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MOBILE: Quote Created -->
+<div class="mobile-shell" id="mob-quote">
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="1" width="3" height="11" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2l-1.5 1.5C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.7 0-3.2.7-4.3 1.8L2.2 7.3C3.7 5.9 5.8 5 8 5s4.3.9 5.8 2.3l-1.5 1.5C11.2 7.7 9.7 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="22.5" y="4" width="2" height="4" rx="1"/><rect x="1.5" y="2.5" width="19" height="7" rx="1"/></svg>
+      </div>
+    </div>
+    <!-- Modal header -->
+    <div class="mob-modal-header">
+      <span class="dots">⋯</span>
+      <div class="modal-title"><span class="sparkle-sm">✦</span> Bill insights</div>
+      <span class="close-x" onclick="showScreen('mob-bill')">✕</span>
+    </div>
+    <!-- Content -->
+    <div class="mob-content" style="padding-top: 8px;">
+      <div class="mob-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search bill charges, lines...">
+        <span class="search-clear">✕</span>
+      </div>
+      <div class="mob-section-title" style="font-size: 18px;">Quote created</div>
+
+      <div class="mob-ai-bubble" style="font-size: 14px;">
+        New quote generated based on the savings you selected. Here's a summary of Jamie's account.
+      </div>
+
+      <!-- Account details grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          8 years, 2 months
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Finance limit: $6595
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          Device limit: $750
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Bill-to-account: $200
+        </div>
+      </div>
+
+      <!-- Opportunities -->
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 13px; color: #888; margin-bottom: 10px; font-weight: 500;">Opportunities</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e5e5e5; border-radius: 24px; padding: 8px 14px; font-size: 13px;">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: #e6f9e6; display: flex; align-items: center; justify-content: center; font-size: 12px;">🏠</span>
+            Qualifies for 5G Home
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e5e5e5; border-radius: 24px; padding: 8px 14px; font-size: 13px;">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: #e6f0ff; display: flex; align-items: center; justify-content: center; font-size: 12px;">💲</span>
+            Discounts Available
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e5e5e5; border-radius: 24px; padding: 8px 14px; font-size: 13px;">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: #e6f9e6; display: flex; align-items: center; justify-content: center; font-size: 12px;">💳</span>
+            Verizon Credit Card • <span style="color: #ee0000; font-weight: 600;">Pre-approved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line summary cards -->
+      <div style="font-size: 13px; color: #888; margin-bottom: 10px; font-weight: 500;">Line summary</div>
+      <div style="border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #f0f0f0;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 18px;">📱</div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 600;">Jamie's iPhone 14</div>
+            <div style="font-size: 12px; color: #888;">Silver, 128gb • $XX/mo</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #f0f0f0;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #888;">V</div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 600;">Mobile Protect</div>
+            <div style="font-size: 12px; color: #888;">Not enrolled • $XX/mo</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #ee0000; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff;">5G</div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 600;">Unlimited Plus</div>
+            <div style="font-size: 12px; color: #888;">$XX/mo with Auto Pay</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mob-feedback">
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        <div class="thumb">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+        </div>
+      </div>
+    </div>
+    <!-- Action buttons -->
+    <div class="mob-action-bar">
+      <button class="mob-action-btn filled" onclick="showScreen('mob-bill')">Review quote</button>
+      <button class="mob-action-btn" onclick="showScreen('mob-savings')">Edit savings</button>
+      <button class="mob-action-btn">Get support</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function showScreen(id) {
+    document.querySelectorAll('.shell, .mobile-shell').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    // Update nav buttons
+    const allScreens = ['screen6','screen3','screen2','screen1','screen5','screen4','mob-bill','mob-insights','mob-savings','mob-quote'];
+    const btns = document.querySelectorAll('.screen-nav button');
+    btns.forEach((btn, i) => {
+      btn.classList.toggle('active', allScreens[i] === id);
+    });
+  }
+
+  // Interactive checkboxes
+  document.querySelectorAll('.checkbox, .mob-checkbox').forEach(cb => {
+    cb.addEventListener('click', function(e) {
+      e.stopPropagation();
+      this.classList.toggle('checked');
+    });
+  });
+</script>
+</body>
+</html>
