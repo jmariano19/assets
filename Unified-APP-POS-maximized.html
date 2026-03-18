@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposed POS - iPad Optimized Walkthrough</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Custom Scrollbar for inner content */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+        }
+
+        /* Hide scrollbar utility */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Smooth transitions for segments */
+        .segment-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Collapse Animations */
+        .collapsed-left {
+            flex: 0 0 0% !important;
+            width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            border-width: 0 !important;
+            opacity: 0 !important;
+            transform: translateX(-30px) scale(0.95) !important;
+            overflow: hidden !important;
+        }
+
+        .collapsed-right {
+            flex: 0 0 0% !important;
+            width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            border-width: 0 !important;
+            opacity: 0 !important;
+            transform: translateX(30px) scale(0.95) !important;
+            overflow: hidden !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+    
+    <!-- iPad Device Bezel -->
+    <div class="relative w-full max-w-[1180px] aspect-[4/3] lg:aspect-[1.52/1] bg-[#121212] rounded-[2.5rem] md:rounded-[3.5rem] p-3 md:p-5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-[#2a2a2a] flex shrink-0">
+        
+        <!-- iPad Camera (Landscape Right) -->
+        <div class="hidden md:block absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-black border border-[#2a2a2a] shadow-[inset_0_0_2px_rgba(255,255,255,0.2)]"></div>
+        <!-- Volume Buttons -->
+        <div class="absolute -top-0.5 left-24 w-12 h-1 bg-gray-800 rounded-t-lg"></div>
+        <div class="absolute -top-0.5 left-40 w-12 h-1 bg-gray-800 rounded-t-lg"></div>
+
+        <!-- Main Application Container (The Screen) -->
+        <div class="w-full h-full bg-white rounded-[1.8rem] md:rounded-[2.8rem] overflow-hidden flex flex-col font-sans text-sm text-gray-900 relative">
+            
+            <!-- Top Header -->
+            <div class="h-16 border-b flex items-center px-6 justify-between shrink-0 relative">
+                <div class="text-[#EE0000] font-black text-2xl tracking-tighter">verizon</div>
+                
+                <!-- Centered Search -->
+                <div class="absolute left-1/2 -translate-x-1/2 w-80 md:w-96 z-10">
+                    <div class="w-full h-10 bg-white border border-gray-300 rounded-full flex items-center px-4 justify-between cursor-text hover:border-gray-400 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                        <div class="flex items-center overflow-hidden">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400 mr-2 shrink-0"></i>
+                            <span class="text-gray-400 truncate text-sm">Ask the assistant, search for articles...</span>
+                        </div>
+                        <div class="flex items-center justify-center bg-blue-50 text-blue-600 w-7 h-7 rounded-full border border-blue-100 shrink-0 ml-2 hover:bg-blue-100 transition-colors" title="AI Mode">
+                            <span class="text-sm leading-none">✨</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 text-gray-500">
+                    <i data-lucide="bell" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
+                    <div class="flex items-center gap-2 cursor-pointer group">
+                        <i data-lucide="user" class="w-5 h-5 group-hover:text-black transition-colors"></i>
+                        <span class="font-bold text-black border-b border-black text-sm">Kella, Srinivasa rao</span>
+                    </div>
+                    <i data-lucide="settings" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
+                </div>
+            </div>
+
+            <!-- Main Body -->
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Left Navigation Sidebar -->
+                <div class="w-16 h-full border-r flex flex-col items-center py-6 shrink-0 bg-gray-50 justify-evenly">
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full hover:bg-gray-100 cursor-pointer transition-colors border-l-4 border-transparent"><i data-lucide="user" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Cust</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full hover:bg-gray-100 cursor-pointer transition-colors border-l-4 border-transparent"><i data-lucide="smartphone" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Mobile</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full hover:bg-gray-100 cursor-pointer transition-colors border-l-4 border-transparent"><i data-lucide="home" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Home</span></div>
+                     <!-- Walkthrough Trigger 1: Shop Button (Initially inactive) -->
+                     <div id="shop-nav-btn" class="py-4 text-gray-500 flex flex-col items-center w-full hover:bg-gray-100 cursor-pointer transition-colors border-l-4 border-transparent"><i data-lucide="shopping-bag" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Shop</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full hover:bg-gray-100 cursor-pointer transition-colors border-l-4 border-transparent"><i data-lucide="help-circle" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Support</span></div>
+                </div>
+
+                <!-- Primary Workspace Content -->
+                <div class="flex-1 min-w-0 bg-gray-50/50 p-4 md:p-6 flex flex-col gap-4">
+                    
+                    <!-- 3 Segments Layout Container -->
+                    <div id="segments-container" class="segment-transition flex-1 flex gap-4 lg:gap-6 h-full pb-2 overflow-hidden">
+                        
+                        <!-- Segment 1: Shop Navigator (Invisible initially, maintains layout) -->
+                        <div id="segment-1" class="segment-transition opacity-0 pointer-events-none translate-y-4 flex-[0.9] bg-white rounded-3xl border border-gray-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] p-3 md:p-4 flex flex-col gap-4 overflow-y-auto h-full no-scrollbar">
+                            <!-- Top Action Buttons -->
+                            <div class="grid grid-cols-3 gap-2 shrink-0">
+                                <button class="bg-white border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <div class="w-10 h-10 rounded-full bg-[#faebe9] flex items-center justify-center text-[#d52b1e] relative">
+                                        <i data-lucide="smartphone" class="w-5 h-5"></i>
+                                        <i data-lucide="plus" class="w-2.5 h-2.5 absolute -top-0.5 -right-0.5 bg-[#faebe9] rounded-full"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-center leading-tight text-gray-900">Add a<br>line</span>
+                                </button>
+                                <!-- Walkthrough Trigger 2: Upgrade Device Button -->
+                                <button id="upgrade-device-btn" class="bg-white border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <div class="w-10 h-10 rounded-full bg-[#faebe9] flex items-center justify-center text-[#d52b1e]">
+                                        <i data-lucide="settings" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-center leading-tight text-gray-900">Upgrade<br>device</span>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <div class="w-10 h-10 rounded-full bg-[#faebe9] flex items-center justify-center text-[#d52b1e]">
+                                        <i data-lucide="home" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-center leading-tight text-gray-900">Home<br>internet</span>
+                                </button>
+                            </div>
+
+                            <!-- Middle Grid Links -->
+                            <div class="grid grid-cols-2 gap-2.5 shrink-0">
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Mobile plans</span>
+                                    <i data-lucide="file-text" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Deals</span>
+                                    <i data-lucide="wallet" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold leading-tight text-left text-gray-900">Products &<br>plan perks</span>
+                                    <i data-lucide="credit-card" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Smartphones</span>
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Tablets & laptops</span>
+                                    <i data-lucide="laptop" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Accessories</span>
+                                    <i data-lucide="headphones" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Watches</span>
+                                    <i data-lucide="watch" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                                <button class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow hover:border-gray-300">
+                                    <span class="text-xs font-bold text-gray-900">Discounts</span>
+                                    <i data-lucide="ticket" class="w-4 h-4 text-gray-800"></i>
+                                </button>
+                            </div>
+
+                            <!-- Shop Deals Section -->
+                            <div class="flex flex-col gap-2 shrink-0">
+                                <h3 class="text-base font-bold text-gray-900">Shop deals</h3>
+                                <div class="flex gap-3 overflow-x-auto pb-3 snap-x no-scrollbar">
+                                    <div class="bg-[#ea0b00] rounded-2xl p-4 w-[185px] shrink-0 flex flex-col justify-between relative overflow-hidden snap-start shadow-sm h-48 cursor-pointer hover:shadow-md transition-shadow border border-transparent hover:border-red-400">
+                                        <h4 class="text-white font-bold text-lg leading-tight mb-2 relative z-10">Buying what you need gets you rewards you want</h4>
+                                        <p class="text-white/95 text-xs leading-snug relative z-10">Learn how to earn 4% in rewards on grocery store, gas and dining</p>
+                                    </div>
+                                    <div class="bg-gradient-to-br from-[#ffd8be] to-[#ffdaeb] rounded-2xl p-4 w-[185px] shrink-0 flex flex-col relative overflow-hidden snap-start shadow-sm h-48 cursor-pointer hover:shadow-md transition-shadow border border-transparent hover:border-pink-300">
+                                        <h4 class="text-black font-bold text-lg leading-tight mb-2">Save on Premium</h4>
+                                        <p class="text-gray-800 text-xs">$5/mo w/ m...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Segment 2: Main Interaction Area (Invisible initially, maintains layout) -->
+                        <div id="segment-2" class="segment-transition opacity-0 pointer-events-none translate-y-4 flex-[1.4] bg-[#f8f9fa] rounded-3xl border border-gray-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] flex flex-col overflow-hidden relative">
+                            
+                            <!-- Normal Mode Header -->
+                            <div id="normal-header" class="p-4 md:p-5 flex flex-col gap-1 shrink-0 bg-white">
+                                <div class="flex items-center justify-between w-full">
+                                    <div class="flex items-center gap-1.5">
+                                        <i data-lucide="sparkles" class="w-5 h-5 text-[#d52b1e] fill-[#d52b1e]"></i>
+                                        <h2 class="text-lg md:text-xl font-black text-black tracking-tight">Top device picks for Jamie</h2>
+                                    </div>
+                                    <button id="toggle-segments-btn" class="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition-all" title="Toggle Full Width">
+                                        <i id="toggle-icon" data-lucide="maximize-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <p class="text-sm text-gray-700">Based on customer information.</p>
+                            </div>
+
+                            <!-- Content Container -->
+                            <div class="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 pb-24">
+                                <!-- Normal Mode Content -->
+                                <div id="normal-content" class="flex flex-col gap-4">
+                                    <div class="flex flex-col gap-2.5">
+                                        <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:border-gray-300 transition-all">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-12 bg-gray-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="smartphone" class="w-6 h-6 text-gray-400"></i></div>
+                                                <div><div class="font-bold text-sm text-black">iPhone 17 Pro</div><div class="text-[11px] text-gray-600">$XX/mo | Silver, 256 GB</div></div>
+                                            </div>
+                                            <div class="w-5 h-5 rounded-full border-[1.5px] border-gray-400 mr-2 bg-white"></div>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:border-gray-300 transition-all">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-12 bg-gray-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="smartphone" class="w-6 h-6 text-gray-400"></i></div>
+                                                <div><div class="font-bold text-sm text-black">iPhone 17 Air</div><div class="text-[11px] text-gray-600">$XX/mo | Silver, 256 GB</div></div>
+                                            </div>
+                                            <div class="w-5 h-5 rounded-full border-[1.5px] border-gray-400 mr-2 bg-white"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 shrink-0">
+                                        <button class="w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50"><i data-lucide="scan-barcode" class="w-5 h-5 text-black"></i></button>
+                                        <button class="bg-white rounded-full shadow-sm border border-gray-100 px-5 py-2.5 flex items-center gap-2 font-bold text-sm text-black hover:bg-gray-50"><i data-lucide="smartphone" class="w-4 h-4 text-black"></i> All devices</button>
+                                    </div>
+                                </div>
+
+                                <!-- Maximized Mode Content (Full Workspace UI) -->
+                                <div id="maximized-content" class="hidden flex gap-6 h-full items-start">
+                                    <div class="flex-[1.2] flex flex-col gap-3.5 h-full">
+                                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center"><i data-lucide="tag" class="w-5 h-5 text-black"></i></div>
+                                            <div class="flex-1"><div class="font-black text-[15px]">Offers</div><div class="text-xs text-gray-500">10+ eligible offers</div></div>
+                                        </div>
+                                        <div class="bg-white p-5 rounded-2xl shadow-sm border-[1.5px] border-black flex items-center gap-5 relative">
+                                            <div class="w-14 h-16 bg-gradient-to-br from-orange-300 to-orange-500 rounded-lg flex items-center justify-center shrink-0"><i data-lucide="smartphone" class="w-8 h-8 text-white"></i></div>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1"><span class="font-black text-base">Apple iPhone 17 Pro</span><span class="bg-gray-100 text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-200">New</span></div>
+                                                <div class="text-[11px] text-gray-500 mb-0.5 font-medium">Cosmic Orange, 512 GB • $XX/mo for 36mo</div>
+                                            </div>
+                                            <div class="absolute top-4 right-4 flex items-center gap-4 text-gray-400">
+                                                <button class="text-[11px] underline font-bold text-gray-600">Configure</button>
+                                                <button class="hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center"><i data-lucide="shield" class="w-5 h-5 text-gray-500"></i></div>
+                                            <div class="flex-1"><div class="font-black text-[15px]">Mobile Protect</div><div class="text-xs text-gray-500 font-medium">Not enrolled • $XX/mo</div></div>
+                                        </div>
+                                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-[#D52B1E] flex flex-col items-center justify-center text-white font-black text-[10px]">5G<span class="text-[6px] -mt-0.5">UW</span></div>
+                                            <div class="flex-1"><div class="font-black text-[15px]">Unlimited Plus</div><div class="text-xs text-gray-500 font-medium">$XX/mo with Auto Pay</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-[0.8] flex flex-col gap-4 border-l border-gray-200/50 pl-6 h-full">
+                                        <div class="flex flex-col gap-1.5 shrink-0">
+                                            <div class="flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#d52b1e] fill-[#d52b1e]"></i><h2 class="text-lg font-black text-black">Top picks</h2></div>
+                                            <p class="text-[13px] text-gray-500 font-medium">Based on information.</p>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                                            <div class="flex items-center gap-3"><div class="w-10 h-12 bg-gray-50 rounded-lg flex items-center justify-center"><i data-lucide="smartphone" class="w-6 h-6 text-gray-400"></i></div><div><div class="font-bold text-xs">iPhone 17 Pro</div><div class="text-[10px] text-gray-500">$XX/mo</div></div></div>
+                                            <div class="w-4 h-4 rounded-full border border-gray-300"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Section -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:px-6 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)] rounded-b-3xl">
+                                <!-- Standard Footer -->
+                                <div id="standard-footer" class="flex flex-row items-center gap-5">
+                                    <div class="leading-tight"><h3 class="font-black text-xl text-black tracking-tight mb-0.5">Jamie’s Line</h3><p class="text-[13px] text-[#555555] font-medium">480-299-4938</p></div>
+                                    <button class="bg-white border border-gray-200 shadow-sm rounded-full px-4 py-1.5 flex items-center gap-1.5 hover:bg-gray-50 transition-colors"><span class="font-bold text-black text-[13px]">Quote 1</span><i data-lucide="chevron-up" class="w-4 h-4 text-gray-500"></i></button>
+                                </div>
+
+                                <!-- Maximized Quote Bar -->
+                                <div id="maximized-footer" class="hidden flex items-center justify-between">
+                                    <div class="flex items-center gap-6">
+                                        <button class="border border-gray-300 rounded-full px-4 py-2 flex items-center gap-2 text-sm font-black text-black shadow-sm shrink-0">Quote 1 <i data-lucide="chevron-up" class="w-4 h-4 text-gray-500"></i></button>
+                                        <div class="flex items-center gap-6 border-l border-gray-200 pl-6 h-10">
+                                            <div><div class="text-[9px] text-gray-500 uppercase font-bold">Current</div><div class="text-sm font-black text-black">$XX.XX</div></div>
+                                            <div><div class="text-[9px] text-[#008000] uppercase font-bold">Savings</div><div class="text-sm font-black text-[#008000]">$XX.XX</div></div>
+                                        </div>
+                                    </div>
+                                    <button class="bg-black text-white font-black text-sm px-8 py-2.5 rounded-full hover:bg-gray-800 transition-all">Review quote</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Segment 3: Customer List (Always Visible) -->
+                        <div id="segment-3" class="segment-transition flex-[0.6] bg-white rounded-3xl border border-gray-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] p-4 flex flex-col overflow-y-auto h-full no-scrollbar">
+                            <div class="mb-4 shrink-0"><h2 class="text-base font-black text-black tracking-tight">Customer List</h2></div>
+                            <div class="flex flex-col gap-1.5 shrink-0">
+                                <div class="bg-[#f8f9fa] p-2 rounded-xl border border-gray-100 flex flex-col cursor-pointer hover:border-gray-300 transition-all">
+                                    <span class="text-xs text-gray-900 font-medium">(347) 909-1894</span>
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase mt-0.5">BEN JONES</span>
+                                </div>
+                                <div class="bg-[#f8f9fa] p-2 rounded-xl border border-gray-100 flex flex-col cursor-pointer hover:border-gray-300 transition-all">
+                                    <span class="text-xs text-gray-900 font-medium">(480) 299-4938</span>
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase mt-0.5">JAMIE SMITH</span>
+                                </div>
+                                <div class="bg-[#f8f9fa] p-2 rounded-xl border border-gray-100 flex flex-col cursor-pointer hover:border-gray-300 transition-all">
+                                    <span class="text-xs text-gray-900 font-medium">(212) 555-8273</span>
+                                    <span class="text-[10px] text-gray-500 font-bold uppercase mt-0.5">SARAH CONNOR</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- Right Utility Drawer -->
+                <div class="w-16 h-full border-l flex flex-col items-center py-6 shrink-0 bg-gray-50 justify-evenly z-20">
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full"><i data-lucide="user-check" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Queue</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full"><i data-lucide="package" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Pickups</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full"><i data-lucide="tag" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Deals</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full"><i data-lucide="book-user" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Leads</span></div>
+                     <div class="py-4 text-gray-500 flex flex-col items-center w-full"><i data-lucide="bar-chart-2" class="w-6 h-6 mb-1.5"></i><span class="text-[11px] font-medium">Insights</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Logic -->
+    <script>
+        lucide.createIcons();
+
+        // DOM Elements
+        const shopNavBtn = document.getElementById('shop-nav-btn');
+        const upgradeBtn = document.getElementById('upgrade-device-btn');
+        const toggleBtn = document.getElementById('toggle-segments-btn');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const segmentsContainer = document.getElementById('segments-container');
+        
+        const seg1 = document.getElementById('segment-1');
+        const seg2 = document.getElementById('segment-2');
+        const seg3 = document.getElementById('segment-3');
+
+        const normalHeader = document.getElementById('normal-header');
+        const normalContent = document.getElementById('normal-content');
+        const standardFooter = document.getElementById('standard-footer');
+
+        const maximizedContent = document.getElementById('maximized-content');
+        const maximizedFooter = document.getElementById('maximized-footer');
+        
+        let isMaximized = false;
+        let isShopVisible = false;
+        let isWorkspaceVisible = false;
+
+        // Walkthrough Step 1: Click "Shop" to fade in Segment 1 and highlight the button
+        shopNavBtn.addEventListener('click', () => {
+            isShopVisible = true;
+            seg1.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            
+            // Highlight Shop button
+            shopNavBtn.classList.remove('text-gray-500', 'hover:bg-gray-100', 'border-transparent');
+            shopNavBtn.classList.add('text-red-600', 'border-red-600', 'bg-red-50', 'hover:bg-red-100/50');
+            
+            const shopText = shopNavBtn.querySelector('span');
+            if (shopText) {
+                shopText.classList.remove('font-medium');
+                shopText.classList.add('font-bold');
+            }
+        });
+
+        // Walkthrough Step 2: Click "Upgrade Device" to fade in Segment 2 and auto-maximize
+        upgradeBtn.addEventListener('click', () => {
+            isWorkspaceVisible = true;
+            seg2.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            
+            // Auto-expand to maximized view with animation
+            if (!isMaximized) {
+                // Short timeout to ensure the fade-in starts before we trigger the maximize layout shift
+                setTimeout(() => {
+                    isMaximized = true;
+                    updateUI();
+                }, 50);
+            }
+        });
+
+        // Toggle Maximize/Minimize functionality
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isMaximized = !isMaximized;
+            updateUI();
+        });
+
+        function updateUI() {
+            if (isMaximized) {
+                // Maximize Logic: Smoothly collapse Seg 1 and Seg 3 out of view
+                seg1.classList.add('collapsed-left');
+                seg3.classList.add('collapsed-right');
+                
+                // Remove gaps in container so Seg 2 fills 100% seamlessly
+                segmentsContainer.classList.remove('gap-4', 'lg:gap-6');
+                segmentsContainer.classList.add('gap-0');
+
+                // Allow Seg 2 to fill entire space
+                seg2.classList.remove('flex-[1.4]');
+                seg2.classList.add('flex-1');
+                
+                // Swap Internal Content
+                normalHeader.classList.add('hidden');
+                normalContent.classList.add('hidden');
+                standardFooter.classList.add('hidden');
+
+                maximizedContent.classList.remove('hidden');
+                maximizedFooter.classList.remove('hidden');
+
+                // Dynamic minimize button (check prevents duplicate injection)
+                if (!document.getElementById('minimize-btn')) {
+                    const btnHtml = `<button id="minimize-btn" class="absolute top-5 right-6 p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition-all z-50"><i data-lucide="minimize-2" class="w-6 h-6"></i></button>`;
+                    seg2.insertAdjacentHTML('afterbegin', btnHtml);
+                    document.getElementById('minimize-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        isMaximized = false;
+                        updateUI();
+                    });
+                }
+            } else {
+                // Restore Logic: Remove collapse classes so they smoothly slide back into layout
+                seg1.classList.remove('collapsed-left');
+                seg3.classList.remove('collapsed-right');
+                
+                // Restore Gaps
+                segmentsContainer.classList.remove('gap-0');
+                segmentsContainer.classList.add('gap-4', 'lg:gap-6');
+
+                // Restore Seg 2 constraints
+                seg2.classList.remove('flex-1');
+                seg2.classList.add('flex-[1.4]');
+                
+                // Swap Internal Content
+                normalHeader.classList.remove('hidden');
+                normalContent.classList.remove('hidden');
+                standardFooter.classList.remove('hidden');
+
+                maximizedContent.classList.add('hidden');
+                maximizedFooter.classList.add('hidden');
+                
+                const minBtn = document.getElementById('minimize-btn');
+                if (minBtn) minBtn.remove();
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
