@@ -230,6 +230,124 @@
     opacity: .65;
     pointer-events: none;
   }
+  .mob-add-line-panel {
+    display: none;
+    padding: 12px 0 10px 58px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .mob-add-line-section {
+    margin-bottom: 14px;
+  }
+  .mob-add-line-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+  .mob-select-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .mob-select-chip {
+    border: 1.5px solid #d7d7d7;
+    background: #fff;
+    color: #1a1a1a;
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .mob-select-chip.is-selected {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .mob-add-line-summary {
+    border: 1px solid #cfe9d8;
+    background: #eef9f1;
+    border-radius: 16px;
+    padding: 12px 14px;
+  }
+  .mob-add-line-summary strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #157347;
+  }
+  .mob-add-line-summary span {
+    font-size: 13px;
+    color: #157347;
+    line-height: 1.45;
+  }
+  .mob-phone-picker {
+    display: none;
+    margin: 2px 0 14px;
+  }
+  .mob-phone-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mob-phone-option {
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid #e3e3e3;
+    border-radius: 16px;
+    padding: 12px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .mob-phone-option.is-selected {
+    border-color: #1a1a1a;
+    box-shadow: inset 0 0 0 1px #1a1a1a;
+  }
+  .mob-phone-option-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .mob-phone-thumb {
+    width: 34px;
+    height: 46px;
+    border-radius: 10px;
+    border: 1px solid #d9d9d9;
+    background: linear-gradient(180deg, #faf8f3 0%, #ece8de 100%);
+    flex-shrink: 0;
+  }
+  .mob-phone-copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .mob-phone-copy strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .mob-phone-copy span {
+    font-size: 12px;
+    color: #777;
+  }
+  .mob-phone-price {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1a1a1a;
+    white-space: nowrap;
+  }
+  .mob-phone-config {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #efefef;
+  }
+  .mob-phone-option.is-selected .mob-phone-config {
+    display: block;
+  }
   .mob-thinking-row {
     display: none;
     align-items: center;
@@ -1162,10 +1280,95 @@
           </div>
         </div>
         <div class="mob-savings-expand" id="more-savings-line-option" style="display:none;">
-          <div class="mob-savings-item" style="cursor:pointer;" onclick="toggleLines(this)"><div class="mob-savings-icon" style="background:#1a1a1a"><span style="font-size:24px;font-weight:500;line-height:1;">+</span></div><div class="mob-savings-text"><strong>Add a line</strong><span>Save up to $5.00/mo on eligible line</span></div><button class="mob-add-btn" onclick="event.stopPropagation();simulateAddLine(this)">Add</button></div>
-          <div class="mob-lines-panel" style="display:none;padding:4px 0 8px 0;border-bottom:1px solid #f0f0f0;">
-            <div style="font-size:13px;color:#888;padding:4px 0 10px;margin-left:58px;">Suggested line to add</div>
-            <div class="mob-line-row" style="display:flex;align-items:center;padding:10px 0;margin-left:58px;"><span style="color:#aaa;margin-right:12px;">📱</span><span style="flex:1;font-size:14px;">••• 0655</span><div class="mob-checkbox"></div></div>
+          <div class="mob-savings-item"><div class="mob-savings-icon" id="more-savings-line-icon" style="background:#1a1a1a"><span id="more-savings-line-icon-symbol" style="font-size:24px;font-weight:500;line-height:1;">+</span></div><div class="mob-savings-text"><strong>Add a line</strong><span>Save up to $5.00/mo on eligible line</span></div><button class="mob-add-btn" onclick="event.stopPropagation();simulateAddLine(this)">Add</button></div>
+          <div class="mob-add-line-panel" id="more-savings-line-panel">
+            <div class="mob-add-line-section">
+              <div class="mob-add-line-label">Who is this line for?</div>
+              <div class="mob-select-grid">
+                <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">Me</button>
+                <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Family member</button>
+                <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Tablet</button>
+              </div>
+            </div>
+            <div class="mob-add-line-section">
+              <div class="mob-add-line-label">Phone number</div>
+              <div class="mob-select-grid">
+                <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">New number</button>
+                <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Bring existing</button>
+              </div>
+            </div>
+            <div class="mob-add-line-section">
+              <div class="mob-add-line-label">Device need</div>
+              <div class="mob-select-grid" id="add-line-device-need-group">
+                <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)" data-add-line-device="need-phone">Need a phone</button>
+                <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)" data-add-line-device="have-phone">I have one</button>
+              </div>
+            </div>
+            <div class="mob-add-line-section mob-phone-picker" id="add-line-phone-picker" style="display:block;">
+              <div class="mob-add-line-label">Choose a phone</div>
+              <div class="mob-phone-options">
+                <div class="mob-phone-option is-selected" onclick="event.stopPropagation();selectPhoneOption(this)">
+                  <div class="mob-phone-option-head">
+                    <div class="mob-phone-thumb"></div>
+                    <div class="mob-phone-copy"><strong>iPhone 17</strong><span>Great value for a new line</span></div>
+                    <div class="mob-phone-price">$10/mo</div>
+                  </div>
+                  <div class="mob-phone-config">
+                    <div class="mob-add-line-section">
+                      <div class="mob-add-line-label">Color</div>
+                      <div class="mob-select-grid">
+                        <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">Silver</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Black</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Blue</button>
+                      </div>
+                    </div>
+                    <div class="mob-add-line-section" style="margin-bottom:0;">
+                      <div class="mob-add-line-label">Memory</div>
+                      <div class="mob-select-grid">
+                        <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">128 GB</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">256 GB</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">512 GB</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mob-phone-option" onclick="event.stopPropagation();selectPhoneOption(this)">
+                  <div class="mob-phone-option-head">
+                    <div class="mob-phone-thumb" style="background:linear-gradient(180deg, #eef2f7 0%, #d9e3ef 100%);"></div>
+                    <div class="mob-phone-copy"><strong>Galaxy S25</strong><span>Promo eligible on add-a-line</span></div>
+                    <div class="mob-phone-price">$8/mo</div>
+                  </div>
+                  <div class="mob-phone-config">
+                    <div class="mob-add-line-section">
+                      <div class="mob-add-line-label">Color</div>
+                      <div class="mob-select-grid">
+                        <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">Graphite</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Blue</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">Mint</button>
+                      </div>
+                    </div>
+                    <div class="mob-add-line-section" style="margin-bottom:0;">
+                      <div class="mob-add-line-label">Memory</div>
+                      <div class="mob-select-grid">
+                        <button class="mob-select-chip is-selected" onclick="event.stopPropagation();selectInlineChip(this)">128 GB</button>
+                        <button class="mob-select-chip" onclick="event.stopPropagation();selectInlineChip(this)">256 GB</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mob-phone-option" onclick="event.stopPropagation();selectPhoneOption(this)">
+                  <div class="mob-phone-option-head">
+                    <div class="mob-phone-thumb" style="background:linear-gradient(180deg, #f9f9f9 0%, #ededed 100%);"></div>
+                    <div class="mob-phone-copy"><strong>Bring my own phone</strong><span>Skip device payment and keep plan savings</span></div>
+                    <div class="mob-phone-price">$0/mo</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mob-add-line-summary">
+              <strong>Estimated added line savings: up to $20.00/mo</strong>
+              <span>You can keep exploring savings here and finish the add-a-line details later in checkout.</span>
+            </div>
           </div>
         </div>
         <div class="mob-thinking-row" id="more-savings-thinking">
@@ -1638,7 +1841,6 @@
   function simulateAddLine(buttonEl) {
     if (!buttonEl) return;
     buttonEl.classList.add('is-loading');
-    var originalLabel = buttonEl.textContent;
     buttonEl.textContent = 'Adding...';
     window.setTimeout(function() {
       buttonEl.classList.remove('is-loading');
@@ -1646,8 +1848,32 @@
       buttonEl.style.background = '#1a1a1a';
       buttonEl.style.color = '#fff';
       buttonEl.style.borderColor = '#1a1a1a';
-      toggleLines(buttonEl.closest('.mob-savings-item'));
+      var expand = buttonEl.closest('.mob-savings-expand');
+      var panel = expand ? expand.querySelector('.mob-add-line-panel') : null;
+      var lineIconSymbol = document.getElementById('more-savings-line-icon-symbol');
+      if (panel) panel.style.display = 'block';
+      if (lineIconSymbol) lineIconSymbol.textContent = '−';
     }, 2200);
+  }
+  function selectInlineChip(buttonEl) {
+    var group = buttonEl.parentElement;
+    if (!group) return;
+    group.querySelectorAll('.mob-select-chip').forEach(function(chip) {
+      chip.classList.toggle('is-selected', chip === buttonEl);
+    });
+    if (group.id === 'add-line-device-need-group') {
+      var phonePicker = document.getElementById('add-line-phone-picker');
+      if (phonePicker) {
+        phonePicker.style.display = buttonEl.dataset.addLineDevice === 'need-phone' ? 'block' : 'none';
+      }
+    }
+  }
+  function selectPhoneOption(optionEl) {
+    var group = optionEl.parentElement;
+    if (!group) return;
+    group.querySelectorAll('.mob-phone-option').forEach(function(option) {
+      option.classList.toggle('is-selected', option === optionEl);
+    });
   }
   var savingsRevealTimer = null;
   function updateUpgradeCtas() {
